@@ -24,9 +24,10 @@ public final class CaptchaUtils {
      * <p>2 matches with the next value -> 2 (+2)              Sum = 3</p>
      * <p>The last element matches with the first element (+1) Sum = 4</p>
      * @param captchaInput A char array of numerical values
+     * @param iterationModifier How many elements to skip when comparing. Default is 1
      * @return A summation of all the matched values
      */
-    private static int inverseCaptcha(final char[] captchaInput) {
+    private static int inverseCaptcha(final char[] captchaInput, final int iterationModifier) {
         final int captchaInputLength = captchaInput.length;
         int sum = 0, current, next;
 
@@ -39,7 +40,7 @@ public final class CaptchaUtils {
          */
         for (int i = 0; i < captchaInputLength; i++) {
             current = Character.getNumericValue(captchaInput[i]);
-            next = Character.getNumericValue(captchaInput[(i + 1) % captchaInputLength]);
+            next = Character.getNumericValue(captchaInput[(i + iterationModifier) % captchaInputLength]);
             if (current == next) {
                 sum += current;
             }
@@ -64,10 +65,27 @@ public final class CaptchaUtils {
      * @throws InvalidCaptchaInput
      */
     public static int inverseCaptcha(final String captchaInput) throws InvalidCaptchaInput {
+        return inverseCaptcha(captchaInput, IterationStrategy.DEFAULT);
+    }
+
+    /**
+     * See {@link #inverseCaptcha(String) inverseCaptcha}
+     * @param captchaInput A String of numerical values
+     * @param iterationStrategy How many elements to skip per comparison?
+     * @return
+     * @throws InvalidCaptchaInput
+     */
+    public static int inverseCaptcha(final String captchaInput, final IterationStrategy iterationStrategy) throws
+            InvalidCaptchaInput {
         if (!captchaInput.trim().matches("[0-9]+")) {
             throw new InvalidCaptchaInput("Captcha should only contain numbers");
         }
-        return inverseCaptcha(captchaInput.trim().toCharArray());
+
+        if(iterationStrategy.equals(IterationStrategy.DEFAULT)){
+            return inverseCaptcha(captchaInput.trim().toCharArray(), 1);
+        } else {
+            return inverseCaptcha(captchaInput.trim().toCharArray(), captchaInput.length()/2);
+        }
     }
 
     /**
@@ -85,25 +103,27 @@ public final class CaptchaUtils {
      * @return A summation of all the matched values
      */
     public static int inverseCaptcha(final int captchaInput) {
-        return inverseCaptcha(String.valueOf(captchaInput).toCharArray());
+        return inverseCaptcha(captchaInput , IterationStrategy.DEFAULT);
     }
 
     /**
-     * <p>Takes in a long sequence, iterates throughout and compares the current value with the next.
-     * The last object in the array compares itself with the first object in the array.
-     * If the two match then the value is added to the output.</p>
-     *
-     * <h2>Example</h2>
-     * <code>{1l,1l,2l,2l,1l}</code> was passed in.
-     * <p>Sum = 0</p>
-     * <p>1 matches with the next value -> 1 (+1)              Sum = 1</p>
-     * <p>2 matches with the next value -> 2 (+2)              Sum = 3</p>
-     * <p>The last element matches with the first element (+1) Sum = 4</p>
-     * @param captchaInput A long array of numerical values
-     * @return A summation of all the matched values
+     * See {@link #inverseCaptcha(int) inverseCaptcha}
+     * @param captchaInput
+     * @param iterationStrategy How many elements to skip per comparison?
+     * @return
      */
-    public static int inverseCaptcha(final long captchaInput) {
-        return inverseCaptcha(String.valueOf(captchaInput).toCharArray());
+    public static int inverseCaptcha(final int captchaInput, final IterationStrategy iterationStrategy) {
+        final char[] output = String.valueOf(captchaInput).toCharArray();
+        final int iterationModifier;
+        if(iterationStrategy.equals(IterationStrategy.DEFAULT)){
+            return inverseCaptcha(String.valueOf(captchaInput).toCharArray(), 1);
+        }else {
+            /**
+             * Assuming it's set to HALFWAY
+             */
+            iterationModifier = output.length/2;
+        }
+        return inverseCaptcha(output, iterationModifier);
     }
 
 }

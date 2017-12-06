@@ -30,16 +30,25 @@ public class Entry {
          */
         final int output;
 
+        final IterationStrategy iterationStrategy;
+
         options.addOption("f", true,
                 "Specify location of a file that contains a Captcha Input");
         options.addOption("i", true, "A list of digits");
         options.addOption("h", false, "Help");
+        options.addOption("s", false, "Set the IterationStrategy to HALFWAY");
 
         try {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
             e.printStackTrace();
             return;
+        }
+
+        if (cmd.hasOption("s")) {
+            iterationStrategy = IterationStrategy.HALFWAY;
+        } else {
+            iterationStrategy = IterationStrategy.DEFAULT;
         }
 
         if (cmd.hasOption("f")) {
@@ -62,7 +71,7 @@ public class Entry {
         }
 
         try {
-            output = CaptchaUtils.inverseCaptcha(input);
+            output = CaptchaUtils.inverseCaptcha(input, iterationStrategy);
         } catch (InvalidCaptchaInput invalidCaptchaInput) {
             System.out.printf("% is not a valid captcha", input);
             invalidCaptchaInput.printStackTrace();
